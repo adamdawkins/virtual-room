@@ -49,7 +49,11 @@ update msg model =
         True ->
             case msg of
                 CloseDoor ->
-                    { model | door = Door False False, message = Nothing }
+                    let
+                        closeDoor door =
+                            { door | open = False }
+                    in
+                    { model | door = closeDoor model.door, message = Nothing }
 
                 _ ->
                     { model | message = Just "You can't do that when the door's open" }
@@ -61,7 +65,14 @@ update msg model =
                         { model | message = Just "The door is already locked" }
 
                     else
-                        { model | door = Door False True, message = Nothing }
+                        let
+                            lockDoor door =
+                                { door | locked = True }
+                        in
+                        { model
+                            | door = lockDoor model.door
+                            , message = Nothing
+                        }
 
                 OpenDoor ->
                     if model.door.locked then
@@ -69,17 +80,28 @@ update msg model =
 
                     else
                         let
-                            alarm =
-                                model.alarm
+                            updateAlarm alarm =
+                                { alarm | triggered = alarm.armed }
 
-                            triggered =
-                                model.alarm.armed
+                            openDoor door =
+                                { door | open = True }
                         in
-                        { model | alarm = { alarm | triggered = triggered }, door = Door True False, message = Nothing }
+                        { model
+                            | alarm = updateAlarm model.alarm
+                            , door = openDoor model.door
+                            , message = Nothing
+                        }
 
                 UnlockDoor ->
                     if model.door.locked then
-                        { model | door = Door False False, message = Nothing }
+                        let
+                            unlockDoor door =
+                                { door | locked = False }
+                        in
+                        { model
+                            | door = unlockDoor model.door
+                            , message = Nothing
+                        }
 
                     else
                         { model | message = Just "The door is already unlocked" }
@@ -99,39 +121,6 @@ update msg model =
 
 
 
--- case msg of
---     CloseDoor ->
---         { model | message = Just "Closing the door" }
---     OpenDoor ->
---         case model.door.open of
---             True ->
---                 { model | message = Just "The door is already open." }
---             False ->
---                 case model.door.locked of
---                     True ->
---                         { model | message = Just "The door is locked" }
---                     False ->
---                         let
---                             door =
---                                 Door True False
---                         in
---                         { model | door = door }
---     LockDoor ->
---         case model.door.open of
---             True ->
---                 { model | message = Just "Close the door to lock it" }
---             False ->
---                 { model | door = Door False True }
---     UnlockDoor ->
---         { model | message = Just "Unlocking the door" }
---     ArmAlarm ->
---         case model.door.open of
---             True ->
---                 { model | message = Just "You can't change the alarm when the door's open" }
---             False ->
---                 { model | alarm = Alarm True False }
---     DisarmAlarm ->
---         { model | message = Just "Disarming the Alarm" }
 -- VIEW
 
 
@@ -179,10 +168,14 @@ viewAlarm alarm =
         alarmStatus =
             if alarm.triggered then
                 "TRIGGERED"
+
             else
                 case alarm.armed of
-                    True -> "armed"
-                    False -> "disarmed"
+                    True ->
+                        "armed"
+
+                    False ->
+                        "disarmed"
     in
     li [] [ text ("The alarm is " ++ alarmStatus) ]
 
