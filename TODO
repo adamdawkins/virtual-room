@@ -1,0 +1,6 @@
+[x] If the alarm is armed, then it should be triggered by the door opening.
+[x] If the alarm has been triggered, then it can be disarmed, but not armed.
+[x] If the door is open, the alarm's current state can not be altered manually.
+[x] If the door is open it can be closed.
+[x] If the door is closed it can be opened or locked.
+[x] If the door is locked it can be unlocked.
